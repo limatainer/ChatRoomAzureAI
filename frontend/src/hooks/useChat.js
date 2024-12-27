@@ -7,6 +7,20 @@ const useChat = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(false); // Add dark mode state
+
+  const topicSuggestions = [
+    'Chocolate Cake Recipe',
+    'Vanilla Sponge Cake Recipe',
+    'Red Velvet Cake Recipe',
+  ];
+
+  const handleSuggestionClick = (suggestion) => {
+    setInput(suggestion);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,7 +59,22 @@ const useChat = () => {
     }
   };
 
-  return { messages, input, setInput, isLoading, sendMessage, messagesEndRef };
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => !prevMode);
+  };
+
+  return {
+    messages,
+    input,
+    setInput,
+    isLoading,
+    sendMessage,
+    messagesEndRef,
+    topicSuggestions, // Ensure this is returned
+    handleSuggestionClick, // Ensure this is returned
+    isDarkMode, // Ensure this is returned
+    toggleDarkMode, // Return dark mode toggle function
+  };
 };
 
 export default useChat;
