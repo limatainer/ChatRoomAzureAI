@@ -4,25 +4,27 @@ import PropTypes from 'prop-types';
 const Sidebar = ({ suggestions, onSuggestionClick, isDarkMode }) => {
   return (
     <div
-      className={`w-1/4 p-4 shadow-lg rounded-lg ${
-        isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-800'
-      }`}
+      className={`
+      w-1/4 p-6 rounded-r-2xl shadow-lg
+      ${isDarkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-800'}
+      transition-colors duration-200
+    `}
     >
-      <div className="bg-blue-600 mt-8 mb-4 p-2">
-        <h1 className="text-white text-2xl font-bold text-center">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           Topics Suggestions
         </h1>
       </div>
-      <h2 className="text-xl font-semibold mb-4">
-        Select one and start the chat
-      </h2>
-      <ul className="space-y-3">
+      <h2 className="text-lg font-medium mb-6">Select to start chat</h2>
+      <ul className="space-y-4">
         {suggestions.map((topic, index) => (
           <li
             key={index}
-            className={`cursor-pointer  hover:underline transition duration-200 ${
-              isDarkMode ? 'text-green-300' : 'text-blue-950'
-            }`}
+            className={`
+            cursor-pointer p-3 rounded-lg
+            ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-accent'}
+            transition-all duration-200
+          `}
             onClick={() => onSuggestionClick(topic)}
           >
             {topic}

@@ -11,7 +11,7 @@ app.use(express.json());
 
 const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
 const AZURE_API_KEY = process.env.AZURE_OPENAI_API_KEY;
-const DEPLOYMENT_NAME = 'gpt-35-turbo'; // ou o nome do seu modelo deployado
+const DEPLOYMENT_NAME = 'gpt-35-turbo';
 
 app.post('/chat', async (req, res) => {
   try {
