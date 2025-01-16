@@ -30,9 +30,9 @@ const App = () => {
       } transition-colors duration-200`}
     >
       <Sidebar
-        suggestions={topicSuggestions} // Pass the topic suggestions
-        onSuggestionClick={handleSuggestionClick} // Pass the suggestion click handler
-        isDarkMode={isDarkMode} // Pass dark mode state
+        suggestions={topicSuggestions}
+        onSuggestionClick={handleSuggestionClick}
+        isDarkMode={isDarkMode}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
@@ -68,7 +68,7 @@ const App = () => {
         {/* Topics selector for mobile */}
         <div className="lg:hidden">
           <TopicSelector
-            suggestions={topicSuggestions} // Pass topic suggestions here as well
+            suggestions={topicSuggestions}
             onSuggestionClick={handleSuggestionClick}
             isDarkMode={isDarkMode}
           />

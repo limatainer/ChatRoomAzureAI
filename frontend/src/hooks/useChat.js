@@ -1,4 +1,3 @@
-// src/hooks/useChat.js
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
@@ -7,12 +6,13 @@ const useChat = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
-  const [isDarkMode, setIsDarkMode] = useState(false); // Add dark mode state
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Updated topic suggestions - you can customize these
   const topicSuggestions = [
-    'Chocolate Cake Recipe',
-    'Vanilla Sponge Cake Recipe',
-    'Red Velvet Cake Recipe',
+    'Write a sonnet about programming',
+    'Explain quantum computing',
+    'Tell me about AI development',
   ];
 
   const handleSuggestionClick = (suggestion) => {
@@ -38,9 +38,11 @@ const useChat = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3000/chat', {
+      // Changed endpoint to use Gemini
+      const response = await axios.post('http://localhost:3000/gemini-chat', {
         message,
       });
+
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: response.data.message },
@@ -70,10 +72,10 @@ const useChat = () => {
     isLoading,
     sendMessage,
     messagesEndRef,
-    topicSuggestions, // Ensure this is returned
-    handleSuggestionClick, // Ensure this is returned
-    isDarkMode, // Ensure this is returned
-    toggleDarkMode, // Return dark mode toggle function
+    topicSuggestions,
+    handleSuggestionClick,
+    isDarkMode,
+    toggleDarkMode,
   };
 };
 
