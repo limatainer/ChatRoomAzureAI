@@ -40,7 +40,7 @@ const useChat = () => {
     try {
       // Changed endpoint to use Gemini
       const response = await axios.post(
-        'https://chat-room-azure-ai.vercel.app/gemini-chat',
+        'https://chatroomai.onrender.com/gemini-chat',
         {
           message,
         }
