@@ -39,9 +39,12 @@ const useChat = () => {
 
     try {
       // Changed endpoint to use Gemini
-      const response = await axios.post('http://localhost:3000/gemini-chat', {
-        message,
-      });
+      const response = await axios.post(
+        'https://chat-room-azure-ai.vercel.app/gemini-chat',
+        {
+          message,
+        }
+      );
 
       setMessages((prev) => [
         ...prev,
