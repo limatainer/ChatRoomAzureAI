@@ -1,92 +1,65 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const axios = require('axios');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { config, validateConfig, isDevelopment } = require('./config/config');
+const chatRoutes = require('./routes/chat');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
-dotenv.config();
 const app = express();
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
-// Azure OpenAI Configuration
-const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
-const AZURE_API_KEY = process.env.AZURE_OPENAI_API_KEY;
-const DEPLOYMENT_NAME = 'gpt-35-turbo';
+if (isDevelopment()) {
+  console.log('Development mode: detailed logging enabled');
+}
 
-// Google Gemini Configuration
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
-const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: config.server.nodeEnv,
+    version: process.env.npm_package_version || '1.0.0'
+  });
+});
 
-// Azure OpenAI Chat Endpoint
-app.post('/chat', async (req, res) => {
+app.use('/api', chatRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+const startServer = async () => {
   try {
-    const { message } = req.body;
-    const response = await axios.post(
-      `${AZURE_ENDPOINT}/openai/deployments/${DEPLOYMENT_NAME}/chat/completions?api-version=2023-05-15`,
-      {
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant.' },
-          { role: 'user', content: message },
-        ],
-        max_tokens: 800,
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'api-key': AZURE_API_KEY,
-        },
-      }
-    );
-    res.json({
-      message: response.data.choices[0].message.content,
+    validateConfig();
+    
+    const server = app.listen(config.server.port, () => {
+      console.log(`Server running on port ${config.server.port}`);
+      console.log(`Environment: ${config.server.nodeEnv}`);
+      console.log(`Health check: http://localhost:${config.server.port}/health`);
     });
+
+    const gracefulShutdown = (signal) => {
+      console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+      server.close((err) => {
+        if (err) {
+          console.error('Error during server shutdown:', err);
+          process.exit(1);
+        }
+        console.log('Server closed successfully');
+        process.exit(0);
+      });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
   } catch (error) {
-    console.error('Error:', error.response?.data || error.message);
-    res.status(500).json({
-      error: 'Error processing request',
-      details: error.response?.data || error.message,
-    });
+    console.error('Failed to start server:', error.message);
+    process.exit(1);
   }
-});
+};
 
-// New Gemini Chat Endpoint
-app.post('/gemini-chat', async (req, res) => {
-  try {
-    const { message } = req.body;
+if (require.main === module) {
+  startServer();
+}
 
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-pro',
-      generationConfig: {
-        maxOutputTokens: 100, // limit the response length
-        temperature: 0.7, // creativity (0.0 - 1.0)
-      },
-    });
-    const prompt = `${message}\n\nPlease format your response using these markers:
-    - Use **Heading:** for section headings
-    - Use * for bullet points
-    - Use numbers followed by periods for numbered lists`;
-
-    // Generate content
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    res.json({
-      message: text,
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({
-      error: 'Error processing Gemini request',
-      details: error.message,
-    });
-  }
-});
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;
