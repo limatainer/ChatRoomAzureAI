@@ -7,6 +7,8 @@ const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('gemini');
+  const [availableProviders, setAvailableProviders] = useState({});
 
   // Updated topic suggestions - you can customize these
   const topicSuggestions = [
@@ -30,6 +32,25 @@ const useChat = () => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const response = await axios.get(`${baseURL}/api/providers`);
+        if (response.data.success) {
+          setAvailableProviders(response.data.providers);
+          if (response.data.defaultProvider) {
+            setSelectedProvider(response.data.defaultProvider);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch providers:', error);
+      }
+    };
+    
+    fetchProviders();
+  }, []);
+
   const sendMessage = async (message) => {
     if (!message.trim()) return;
 
@@ -38,25 +59,47 @@ const useChat = () => {
     setIsLoading(true);
 
     try {
-      // Changed endpoint to use Gemini
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
       const response = await axios.post(
-        'https://chatroomai.onrender.com/gemini-chat',
+        `${baseURL}/api/chat`,
         {
           message,
+          provider: selectedProvider,
+        },
+        {
+          timeout: import.meta.env.VITE_API_TIMEOUT || 30000,
         }
       );
 
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: response.data.message },
-      ]);
+      if (response.data.success) {
+        setMessages((prev) => [
+          ...prev,
+          { 
+            role: 'assistant', 
+            content: response.data.message,
+            provider: response.data.provider,
+            model: response.data.model
+          },
+        ]);
+      } else {
+        throw new Error(response.data.message || 'Chat request failed');
+      }
     } catch (error) {
       console.error('Error:', error);
+      let errorMessage = 'Sorry, I encountered an error. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = `Error: ${error.response.data.message}`;
+      } else if (error.message.includes('Network Error')) {
+        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        errorMessage = `Cannot connect to server. Make sure the server is running on ${baseURL}`;
+      }
+      
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: 'Sorry, I encountered an error. Please try again.',
+          content: errorMessage,
         },
       ]);
     } finally {
@@ -79,6 +122,9 @@ const useChat = () => {
     handleSuggestionClick,
     isDarkMode,
     toggleDarkMode,
+    selectedProvider,
+    setSelectedProvider,
+    availableProviders,
   };
 };
 
