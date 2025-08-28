@@ -91,8 +91,15 @@ const useChat = () => {
       if (error.response?.data?.message) {
         errorMessage = `Error: ${error.response.data.message}`;
       } else if (error.message.includes('Network Error')) {
-        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-        errorMessage = `Cannot connect to server. Make sure the server is running on ${baseURL}`;
+        const isDevelopment = import.meta.env.MODE === 'development' || 
+                              (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL.includes('localhost'));
+        
+        if (isDevelopment) {
+          const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+          errorMessage = `Cannot connect to server. Make sure the server is running on ${baseURL}`;
+        } else {
+          errorMessage = 'Unable to connect to the chat service. Please check your internet connection and try again.';
+        }
       }
       
       setMessages((prev) => [
